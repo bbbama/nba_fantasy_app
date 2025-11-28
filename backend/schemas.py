@@ -17,7 +17,7 @@ class Player(PlayerBase):
     id: int
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 # Schematy dla Użytkownika (User)
 class UserBase(BaseModel):
@@ -32,7 +32,7 @@ class User(UserBase):
     players: List[Player] = []
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 class UserLogin(BaseModel):
     email: str

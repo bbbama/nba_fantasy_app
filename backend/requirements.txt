@@ -1,0 +1,7 @@
+fastapi[all]
+sqlalchemy
+python-jose[cryptography]
+passlib
+bcrypt==3.2.0
+nba_api
+requests
