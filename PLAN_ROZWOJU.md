@@ -50,3 +50,22 @@ Ten dokument opisuje kolejne kroki implementacyjne, które należy podjąć, aby
         *   Opis dostępnych endpointów API.
 
 Po zrealizowaniu tych kroków aplikacja będzie w pełni funkcjonalnym prototypem.
+
+
+ Backend:
+
+   1. Implementacja logiki formowania składu: Stworzenie endpointów API do tworzenia, edytowania i pobierania składów drużyn użytkowników.
+   2. Obliczanie punktów fantasy: Rozwinięcie logiki do obliczania punktów dla każdego gracza na podstawie jego rzeczywistych statystyk z
+      meczów NBA.
+   3. Rankingi i ligi: Stworzenie systemu lig, do których mogą dołączać użytkownicy, oraz generowanie rankingów na podstawie zdobytych
+      punktów.
+   4. Automatyzacja pobierania danych: Udoskonalenie skryptów do regularnego i automatycznego pobierania aktualnych statystyk graczy i
+      wyników meczów.
+
+  Frontend:
+
+   1. Zarządzanie składem: Stworzenie interfejsu użytkownika, który pozwoli na łatwe dodawanie i usuwanie graczy z drużyny fantasy.
+   2. Wizualizacja punktów i statystyk: Wyświetlanie zdobytych punktów przez poszczególnych graczy i całą drużynę w czasie rzeczywistym.
+   3. Widok ligi i rankingu: Zaprojektowanie i implementacja strony, na której użytkownicy mogą przeglądać swoją pozycję w lidze.
+   4. Profil użytkownika: Stworzenie strony profilu, gdzie użytkownik może zobaczyć swoje drużyny, historię wyników i inne personalne
+      informacje.

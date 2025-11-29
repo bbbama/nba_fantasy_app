@@ -3,8 +3,8 @@ from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 from datetime import timedelta
 
-from . import auth, models, schemas
-from .models import get_db, create_tables
+import auth, models, schemas
+from models import get_db, create_tables
 
 # Utworzenie tabel przy starcie aplikacji (jeśli nie istnieją)
 # W środowisku produkcyjnym lepiej użyć Alembic do migracji

@@ -6,8 +6,8 @@ from datetime import datetime, timedelta
 from typing import Optional
 
 from sqlalchemy.orm import Session
-from . import models, schemas
-from .models import get_db
+import models, schemas
+from models import get_db
 
 # Konfiguracja
 SECRET_KEY = "YOUR_SECRET_KEY"  # W przyszłości przenieść do zmiennych środowiskowych

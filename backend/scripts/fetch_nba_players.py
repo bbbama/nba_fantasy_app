@@ -4,7 +4,7 @@ from nba_api.stats.static import players
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from backend.models import SessionLocal, Player, create_tables
+from models import SessionLocal, Player, create_tables
 
 def fetch_and_store_nba_players():
 
