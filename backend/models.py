@@ -1,8 +1,12 @@
-from sqlalchemy import create_engine, Column, Integer, String, ForeignKey, Table, Boolean
+import os
+from sqlalchemy import create_engine, Column, Integer, String, ForeignKey, Table, Boolean, Float
 from sqlalchemy.orm import relationship, sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 
-DATABASE_URL = "sqlite:///./data/nba_fantasy.db"
+# Absolutna ścieżka do katalogu, w którym znajduje się ten plik
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+# Absolutna ścieżka do pliku bazy danych
+DATABASE_URL = f"sqlite:///{os.path.join(BASE_DIR, 'data', 'nba_fantasy.db')}"
 
 Base = declarative_base()
 
@@ -39,6 +43,7 @@ class Player(Base):
     points = Column(Integer, default=0)
     rebounds = Column(Integer, default=0)
     assists = Column(Integer, default=0)
+    fantasy_points = Column(Float, default=0.0)
 
     # Relacja zwrotna do użytkowników, którzy mają tego gracza w drużynie
     users = relationship(

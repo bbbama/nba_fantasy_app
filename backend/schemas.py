@@ -9,6 +9,7 @@ class PlayerBase(BaseModel):
     points: int = 0
     rebounds: int = 0
     assists: int = 0
+    fantasy_points: float = 0.0
 
 class PlayerCreate(PlayerBase):
     pass
