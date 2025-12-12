@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { useAuth } from "../AuthContext";
-import { getPlayers, getMyTeam, updateMyTeam } from "../services/api";
+import { getPlayers, getMyTeam, addPlayerToTeam, removePlayerFromTeam } from "../services/api";
 import { Player } from "../types";
 import { PlayerCard } from "../components/PlayerCard";
 
@@ -26,7 +26,6 @@ export const PlayersPage = () => {
   const [teamPlayerIds, setTeamPlayerIds] = useState<Set<number>>(new Set());
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [saveMessage, setSaveMessage] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchInitialData = async () => {
@@ -53,32 +52,45 @@ export const PlayersPage = () => {
     fetchInitialData();
   }, [token]);
 
-  const handleAddToTeam = (playerId: number) => {
+  const handleAddToTeam = async (playerId: number) => {
+    if (!token) return;
     if (teamPlayerIds.size >= 10) {
       alert("You can select a maximum of 10 players.");
       return;
     }
+    
+    // Optimistic UI update
     setTeamPlayerIds((prev) => new Set(prev).add(playerId));
+
+    try {
+      await addPlayerToTeam(token, playerId);
+    } catch (error) {
+      alert("Failed to add player to your team. Please try again.");
+      // Revert UI on failure
+      setTeamPlayerIds((prev) => {
+        const newSet = new Set(prev);
+        newSet.delete(playerId);
+        return newSet;
+      });
+    }
   };
 
-  const handleRemoveFromTeam = (playerId: number) => {
+  const handleRemoveFromTeam = async (playerId: number) => {
+    if (!token) return;
+
+    // Optimistic UI update
     setTeamPlayerIds((prev) => {
       const newSet = new Set(prev);
       newSet.delete(playerId);
       return newSet;
     });
-  };
 
-  const handleSaveTeam = async () => {
-    if (!token) return;
     try {
-      setSaveMessage("Saving...");
-      await updateMyTeam(token, Array.from(teamPlayerIds));
-      setSaveMessage("Team saved successfully!");
+      await removePlayerFromTeam(token, playerId);
     } catch (error) {
-      setSaveMessage("Failed to save team.");
-    } finally {
-      setTimeout(() => setSaveMessage(null), 3000);
+      alert("Failed to remove player from your team. Please try again.");
+      // Revert UI on failure
+      setTeamPlayerIds((prev) => new Set(prev).add(playerId));
     }
   };
 
@@ -94,10 +106,6 @@ export const PlayersPage = () => {
     <div>
       <div style={topBarStyle}>
         <h2>Available Players ({teamPlayerIds.size} / 10 selected)</h2>
-        <div>
-          <button onClick={handleSaveTeam}>Save Team</button>
-          {saveMessage && <span style={{ marginLeft: '10px' }}>{saveMessage}</span>}
-        </div>
       </div>
       {players.length === 0 ? (
         <p>No players found.</p>
@@ -107,8 +115,8 @@ export const PlayersPage = () => {
             <PlayerCard
               key={player.id}
               player={player}
-              onAddToTeam={handleAddToTeam}
-              onRemoveFromTeam={handleRemoveFromTeam}
+              onAddToTeam={() => handleAddToTeam(player.id)}
+              onRemoveFromTeam={() => handleRemoveFromTeam(player.id)}
               isInTeam={teamPlayerIds.has(player.id)}
             />
           ))}

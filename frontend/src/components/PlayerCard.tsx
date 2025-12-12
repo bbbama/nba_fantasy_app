@@ -78,6 +78,7 @@ export const PlayerCard: React.FC<PlayerCardProps> = ({
       <div style={playerDetailsStyle}>
         <p>Position: {player.position || "N/A"}</p>
         <p>Team: {player.team_name || "N/A"}</p>
+        <p>Avg. Fantasy Points: {player.average_fantasy_points.toFixed(2)}</p>
       </div>
       {isInTeam ? (
         <button

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useAuth } from "../AuthContext";
-import { getMyTeam } from "../services/api";
+import { getMyTeam, removePlayerFromTeam } from "../services/api";
 import { Player } from "../types";
 import { PlayerCard } from "../components/PlayerCard";
 
@@ -38,6 +38,22 @@ export const MyTeamPage = () => {
     fetchTeam();
   }, [token]);
 
+  const handleRemoveFromTeam = async (playerId: number) => {
+    if (!token) return;
+
+    // Optimistic UI update: remove player from state immediately
+    const originalTeam = [...team];
+    setTeam(currentTeam => currentTeam.filter(player => player.id !== playerId));
+
+    try {
+      await removePlayerFromTeam(token, playerId);
+    } catch (error) {
+      alert("Failed to remove player from your team. Please try again.");
+      // Revert UI on failure
+      setTeam(originalTeam);
+    }
+  };
+
   if (loading) {
     return <div>Loading your team...</div>;
   }
@@ -57,8 +73,8 @@ export const MyTeamPage = () => {
             <PlayerCard
               key={player.id}
               player={player}
-              onAddToTeam={() => {}}
-              onRemoveFromTeam={() => {}}
+              onAddToTeam={() => {}} // Not applicable on this page
+              onRemoveFromTeam={() => handleRemoveFromTeam(player.id)}
               isInTeam={true}
             />
           ))}

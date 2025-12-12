@@ -6,10 +6,7 @@ class PlayerBase(BaseModel):
     full_name: str
     position: Optional[str] = None
     team_name: Optional[str] = None
-    points: int = 0
-    rebounds: int = 0
-    assists: int = 0
-    fantasy_points: float = 0.0
+    average_fantasy_points: float = 0.0
 
 class PlayerCreate(PlayerBase):
     pass

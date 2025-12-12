@@ -37,10 +37,19 @@ export const getMyTeam = async (token: string) => {
     return response.data;
 };
 
-export const updateMyTeam = async (token: string, playerIds: number[]) => {
-    const response = await api.post('/me/team', 
-    { player_ids: playerIds },
+export const addPlayerToTeam = async (token: string, playerId: number) => {
+    const response = await api.post(`/me/team/players/${playerId}`, 
+    {}, // No body needed for this request
     {
+        headers: {
+            Authorization: `Bearer ${token}`,
+        },
+    });
+    return response.data;
+};
+
+export const removePlayerFromTeam = async (token: string, playerId: number) => {
+    const response = await api.delete(`/me/team/players/${playerId}`, {
         headers: {
             Authorization: `Bearer ${token}`,
         },

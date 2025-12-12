@@ -111,33 +111,64 @@ def get_my_team(
     """
     return current_user.players
 
-@app.post("/me/team", response_model=schemas.User)
-def update_my_team(
-    team_data: schemas.UserTeamUpdate,
+@app.post("/me/team/players/{player_id}", response_model=schemas.Player)
+def add_player_to_team(
+    player_id: int,
     db: Session = Depends(get_db),
     current_user: models.User = Depends(auth.get_current_user)
 ):
-    """
-    Aktualizuje drużynę użytkownika, przypisując do niej nowych zawodników.
-    Użytkownik może wybrać maksymalnie 10 zawodników.
-    """
-    if len(team_data.player_ids) > 10:
+    """Dodaje jednego zawodnika do drużyny użytkownika."""
+    # Sprawdzenie, czy drużyna nie jest pełna
+    if len(current_user.players) >= 10:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="You can select a maximum of 10 players."
+            detail="Your team is full. You can have a maximum of 10 players."
         )
 
-    # Weryfikacja, czy wszyscy zawodnicy istnieją
-    players = db.query(models.Player).filter(models.Player.id.in_(team_data.player_ids)).all()
-    if len(players) != len(team_data.player_ids):
+    # Sprawdzenie, czy zawodnik istnieje
+    player = db.query(models.Player).filter(models.Player.id == player_id).first()
+    if not player:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="One or more players not found."
+            detail="Player not found."
         )
     
-    # Aktualizacja drużyny
-    current_user.players = players
+    # Sprawdzenie, czy zawodnik nie jest już w drużynie
+    if player in current_user.players:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Player is already in your team."
+        )
+
+    # Dodanie zawodnika do drużyny
+    current_user.players.append(player)
     db.commit()
-    db.refresh(current_user)
-    
-    return current_user
+    db.refresh(player)
+    return player
+
+@app.delete("/me/team/players/{player_id}", status_code=status.HTTP_204_NO_CONTENT)
+def remove_player_from_team(
+    player_id: int,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.get_current_user)
+):
+    """Usuwa jednego zawodnika z drużyny użytkownika."""
+    # Sprawdzenie, czy zawodnik istnieje
+    player = db.query(models.Player).filter(models.Player.id == player_id).first()
+    if not player:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Player not found."
+        )
+
+    # Sprawdzenie, czy zawodnik jest w drużynie
+    if player not in current_user.players:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Player is not in your team."
+        )
+
+    # Usunięcie zawodnika z drużyny
+    current_user.players.remove(player)
+    db.commit()
+    return
