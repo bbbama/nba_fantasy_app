@@ -5,7 +5,8 @@ import { HomePage } from "./pages/HomePage";
 import { LoginPage } from "./pages/LoginPage";
 import { RegisterPage } from "./pages/RegisterPage";
 import { PlayersPage } from "./pages/PlayersPage";
-import { MyTeamPage } from "./pages/MyTeamPage"; // Import MyTeamPage
+import { MyTeamPage } from "./pages/MyTeamPage";
+import LeaderboardPage from "./pages/LeaderboardPage"; // Import LeaderboardPage
 import { PrivateRoute } from "./components/PrivateRoute";
 
 function App() {
@@ -33,7 +34,10 @@ function App() {
                 <Link to="/players">Players</Link>
               </li>
               <li>
-                <Link to="/my-team">My Team</Link> {/* Add My Team link */}
+                <Link to="/my-team">My Team</Link>
+              </li>
+              <li>
+                <Link to="/leaderboard">Leaderboard</Link> {/* Add Leaderboard link */}
               </li>
               <li>
                 <button onClick={logout}>Logout</button>
@@ -67,6 +71,14 @@ function App() {
           element={
             <PrivateRoute>
               <MyTeamPage />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/leaderboard"
+          element={
+            <PrivateRoute>
+              <LeaderboardPage />
             </PrivateRoute>
           }
         />

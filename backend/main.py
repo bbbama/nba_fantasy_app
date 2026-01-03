@@ -114,18 +114,82 @@ def get_my_team(
     """
     return db.query(models.User).options(joinedload(models.User.players).joinedload(models.Player.game_stats)).filter(models.User.id == current_user.id).first().players
 
+MAX_TOTAL_PLAYERS = 10
+MAX_POSITIONS = {
+    "Guard": 4,
+    "Forward": 4,
+    "Center": 2,
+}
+
+# Mapping NBA positions to general fantasy positions (a player can fit into multiple)
+# For simplicity, if a player is 'G-F', they can fill either a Guard OR a Forward slot.
+# We'll try to find a slot that fits.
+POSITION_MAPPING_RULES = {
+    "G": ["Guard"],
+    "F": ["Forward"],
+    "C": ["Center"],
+    "G-F": ["Guard", "Forward"],
+    "F-C": ["Forward", "Center"],
+    "C-F": ["Forward", "Center"],
+    "F-G": ["Guard", "Forward"],
+    "N/A": []
+}
+
+def get_player_general_positions(nba_position: str) -> list[str]:
+    """Maps an NBA position string to a list of possible general fantasy positions."""
+    return POSITION_MAPPING_RULES.get(nba_position, [])
+
+def is_roster_valid(roster_players: list[models.Player]) -> bool:
+    """
+    Checks if a given list of players can form a valid roster according to MAX_POSITIONS.
+    Uses a backtracking approach for flexible players.
+    """
+    temp_counts = {"Guard": 0, "Forward": 0, "Center": 0}
+    flexible_players = []
+
+    # First, count players with fixed (single) general positions
+    for p in roster_players:
+        possible_pos = get_player_general_positions(p.position)
+        if len(possible_pos) == 1: # Fixed position player
+            general_pos = possible_pos[0]
+            temp_counts[general_pos] += 1
+            if temp_counts[general_pos] > MAX_POSITIONS[general_pos]:
+                return False # Exceeded limit with fixed players alone
+        elif len(possible_pos) > 1: # Hybrid position player
+            flexible_players.append(p)
+        else: # Unrecognized position
+            return False
+
+    # Now, try to assign flexible players using backtracking
+    def solve_flexible_assignment(flex_idx):
+        if flex_idx == len(flexible_players):
+            return True # All flexible players assigned successfully
+
+        player = flexible_players[flex_idx]
+        for general_pos_option in get_player_general_positions(player.position):
+            if temp_counts[general_pos_option] < MAX_POSITIONS[general_pos_option]:
+                temp_counts[general_pos_option] += 1 # Try assigning player to this slot
+                if solve_flexible_assignment(flex_idx + 1):
+                    return True
+                temp_counts[general_pos_option] -= 1 # Backtrack: undo assignment
+
+        return False
+
+    return solve_flexible_assignment(0)
+
+
 @app.post("/me/team/players/{player_id}", response_model=schemas.Player)
 def add_player_to_team(
     player_id: int,
     db: Session = Depends(get_db),
     current_user: models.User = Depends(auth.get_current_user)
 ):
-    """Dodaje jednego zawodnika do drużyny użytkownika."""
+    """Dodaje jednego zawodnika do drużyny użytkownika, z walidacją pozycji."""
     # Sprawdzenie, czy drużyna nie jest pełna
-    if len(current_user.players) >= 10:
+    if len(current_user.players) >= MAX_TOTAL_PLAYERS:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Your team is full. You can have a maximum of 10 players."
+            detail=f"Your team is full. You can have a maximum of {MAX_TOTAL_PLAYERS} players."
         )
 
     # Sprawdzenie, czy zawodnik istnieje
@@ -141,6 +205,16 @@ def add_player_to_team(
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Player is already in your team."
+        )
+    
+    # --- Roster Position Validation ---
+    # Create a hypothetical roster including the new player
+    hypothetical_roster = current_user.players + [player]
+
+    if not is_roster_valid(hypothetical_roster):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Adding {player.full_name} would violate roster position limits."
         )
 
     # Dodanie zawodnika do drużyny
@@ -176,6 +250,18 @@ def remove_player_from_team(
     db.commit()
     return
 
+
+@app.get("/leaderboard", response_model=list[schemas.User])
+def get_leaderboard(
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.get_current_user)
+):
+    """
+    Returns a list of all users sorted by their total fantasy points in descending order.
+    Accessible to any authenticated user.
+    """
+    users = db.query(models.User).order_by(models.User.total_fantasy_points.desc()).all()
+    return users
 
 # --- Scheduler Logic ---
 

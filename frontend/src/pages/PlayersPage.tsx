@@ -54,24 +54,26 @@ export const PlayersPage = () => {
 
   const handleAddToTeam = async (playerId: number) => {
     if (!token) return;
-    if (teamPlayerIds.size >= 10) {
-      alert("You can select a maximum of 10 players.");
-      return;
-    }
     
     // Optimistic UI update
     setTeamPlayerIds((prev) => new Set(prev).add(playerId));
 
     try {
       await addPlayerToTeam(token, playerId);
-    } catch (error) {
-      alert("Failed to add player to your team. Please try again.");
+    } catch (err: any) { // Catch the error to get details
       // Revert UI on failure
       setTeamPlayerIds((prev) => {
         const newSet = new Set(prev);
         newSet.delete(playerId);
         return newSet;
       });
+
+      // Display specific error message from backend
+      if (err.response && err.response.data && err.response.data.detail) {
+        alert(err.response.data.detail);
+      } else {
+        alert("Failed to add player to your team. Please try again.");
+      }
     }
   };
 

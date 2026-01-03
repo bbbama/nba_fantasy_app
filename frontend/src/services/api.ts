@@ -9,6 +9,15 @@ const api = axios.create({
     },
 });
 
+export const getLeaderboard = async (token: string) => {
+    const response = await api.get('/leaderboard', {
+        headers: {
+            Authorization: `Bearer ${token}`,
+        },
+    });
+    return response.data;
+};
+
 export const registerUser = async (email: string, password: string) => {
     const response = await api.post('/register', { email, password });
     return response.data;
