@@ -37,6 +37,15 @@ export const getUsersMe = async (token: string) => {
     return response.data;
 };
 
+export const changePassword = async (token: string, data: any) => {
+    const response = await api.put('/users/me/change-password', data, {
+        headers: {
+            Authorization: `Bearer ${token}`,
+        },
+    });
+    return response.data;
+};
+
 export const getPlayers = async (token: string) => {
     const response = await api.get('/players', {
         headers: {

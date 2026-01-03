@@ -72,6 +72,31 @@ def read_users_me(current_user: models.User = Depends(auth.get_current_user)):
     """Pobiera dane zalogowanego użytkownika."""
     return current_user
 
+@app.put("/users/me/change-password", status_code=status.HTTP_204_NO_CONTENT)
+def change_current_user_password(
+    passwords: schemas.ChangePassword,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.get_current_user)
+):
+    """Pozwala zalogowanemu użytkownikowi na zmianę własnego hasła."""
+    # Weryfikacja obecnego hasła
+    if not auth.verify_password(passwords.current_password, current_user.hashed_password):
+        raise HTTPException(status_code=400, detail="Incorrect current password.")
+
+    # Sprawdzenie, czy nowe hasła się zgadzają
+    if passwords.new_password != passwords.confirm_new_password:
+        raise HTTPException(status_code=400, detail="New passwords do not match.")
+
+    # Walidacja siły nowego hasła (prosty przykład)
+    if len(passwords.new_password) < 8:
+        raise HTTPException(status_code=400, detail="New password must be at least 8 characters long.")
+
+    # Hashowanie i aktualizacja hasła
+    current_user.hashed_password = auth.get_password_hash(passwords.new_password)
+    db.commit()
+
+    return
+
 # Endpointy do zarządzania zawodnikami
 
 @app.post("/players", response_model=schemas.Player)

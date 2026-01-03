@@ -7,12 +7,13 @@ import { RegisterPage } from "./pages/RegisterPage";
 import { PlayersPage } from "./pages/PlayersPage";
 import { MyTeamPage } from "./pages/MyTeamPage";
 import LeaderboardPage from "./pages/LeaderboardPage";
-import AdminPage from "./pages/AdminPage"; // Import AdminPage
+import AdminPage from "./pages/AdminPage";
+import ProfilePage from "./pages/ProfilePage"; // Import ProfilePage
 import { PrivateRoute } from "./components/PrivateRoute";
-import { AdminRoute } from "./components/AdminRoute"; // Import AdminRoute
+import { AdminRoute } from "./components/AdminRoute";
 
 function App() {
-  const { isAuthenticated, user, logout } = useAuth(); // Get user from context
+  const { isAuthenticated, user, logout } = useAuth();
 
   return (
     <div>
@@ -41,7 +42,10 @@ function App() {
               <li>
                 <Link to="/leaderboard">Leaderboard</Link>
               </li>
-              {user?.role === 'admin' && ( // Conditionally render Admin link
+              <li>
+                <Link to="/profile">My Profile</Link>
+              </li>
+              {user?.role === 'admin' && (
                 <li>
                   <Link to="/admin">Admin Panel</Link>
                 </li>
@@ -86,6 +90,14 @@ function App() {
           element={
             <PrivateRoute>
               <LeaderboardPage />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/profile"
+          element={
+            <PrivateRoute>
+              <ProfilePage />
             </PrivateRoute>
           }
         />
