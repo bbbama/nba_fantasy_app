@@ -114,3 +114,13 @@ export const adminResetUserPassword = async (token: string, userId: number) => {
     });
     return response.data;
 };
+
+export const adminSyncPlayersData = async (token: string) => {
+    const response = await api.post('/admin/sync-players', {}, {
+        headers: {
+            Authorization: `Bearer ${token}`,
+        },
+    });
+    return response.data;
+};
+

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useAuth } from "../AuthContext";
-import { adminGetAllUsers, adminDeleteUser, adminResetUserPassword } from "../services/api";
+import { adminGetAllUsers, adminDeleteUser, adminResetUserPassword, adminSyncPlayersData } from "../services/api";
 import { User } from "../types";
 
 const AdminPage = () => {
@@ -27,9 +27,23 @@ const AdminPage = () => {
     }
   };
 
+  const handleSyncPlayers = async () => {
+    if (!token) return;
+    if (window.confirm("Are you sure you want to trigger a full player data sync? This might take a moment.")) {
+      try {
+        const response = await adminSyncPlayersData(token);
+        alert(response.message);
+      } catch (err) {
+        alert("Failed to trigger player data sync.");
+        console.error("Failed to trigger player data sync:", err);
+      }
+    }
+  };
+
   useEffect(() => {
     fetchUsers();
   }, [token]);
+
 
   const handleDeleteUser = async (userId: number) => {
     if (!token) return;
@@ -67,6 +81,12 @@ const AdminPage = () => {
   return (
     <div>
       <h2>Admin Panel - User Management</h2>
+      <div style={{ marginBottom: '20px' }}>
+        <button onClick={handleSyncPlayers} style={{ padding: '10px 20px', backgroundColor: '#007bff', color: 'white', border: 'none', borderRadius: '5px', cursor: 'pointer' }}>
+          Sync Players Data
+        </button>
+      </div>
+
       {users.length === 0 ? (
         <p>No users found.</p>
       ) : (

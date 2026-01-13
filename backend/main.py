@@ -42,9 +42,17 @@ def register_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
     db_user = auth.get_user(db, email=user.email)
     if db_user:
         raise HTTPException(status_code=400, detail="Email already registered")
-    
+
+    # Check if this is the first user
+    is_first_user = db.query(models.User).count() == 0
+    user_role = "admin" if is_first_user else "user"
+
     hashed_password = auth.get_password_hash(user.password)
-    db_user = models.User(email=user.email, hashed_password=hashed_password)
+    db_user = models.User(
+        email=user.email,
+        hashed_password=hashed_password,
+        role=user_role
+    )
     db.add(db_user)
     db.commit()
     db.refresh(db_user)
@@ -348,6 +356,19 @@ def admin_reset_user_password(
     db.commit()
     db.refresh(user_to_reset)
     return user_to_reset
+
+
+@app.post("/admin/sync-players", status_code=status.HTTP_200_OK)
+async def sync_players_data(
+    current_admin: models.User = Depends(auth.get_current_active_admin)
+):
+    """[Admin only] Triggers a full sync of NBA players and updates their stats."""
+    print("Manual sync triggered by admin.")
+    from scripts.fetch_nba_players import sync_all_players_from_api
+    sync_all_players_from_api()
+    update_stats_for_active_players()
+    return {"message": "Player data sync initiated. Check server logs for progress."}
+
 
 # --- Scheduler Logic ---
 
