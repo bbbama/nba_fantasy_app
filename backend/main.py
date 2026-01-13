@@ -10,11 +10,11 @@ import atexit
 import auth, models, schemas
 from models import get_db, create_tables
 
-# Utworzenie tabel przy starcie aplikacji (jeśli nie istnieją)
-# W środowisku produkcyjnym lepiej użyć Alembic do migracji
-create_tables()
-
 app = FastAPI()
+
+@app.on_event("startup")
+def startup_event():
+    create_tables()
 
 # TODO: Skonfigurować CORS prawidłowo dla frontendu
 import os  # Add at top
