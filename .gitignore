@@ -19,3 +19,4 @@ build/
 .vscode/
 
 Wymagania_projektu.txt
+.env*

@@ -1,3 +1,4 @@
+import os
 from fastapi import FastAPI, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session, joinedload
@@ -16,10 +17,15 @@ create_tables()
 app = FastAPI()
 
 # TODO: Skonfigurować CORS prawidłowo dla frontendu
+import os  # Add at top
 from fastapi.middleware.cors import CORSMiddleware
+
+FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:3000")
+
 origins = [
     "http://localhost",
-    "http://localhost:3000", # Adres deweloperski aplikacji React
+    "http://localhost:3000",
+    FRONTEND_URL,  # Production frontend URL
 ]
 app.add_middleware(
     CORSMiddleware,
