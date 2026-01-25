@@ -1,31 +1,64 @@
 import React, { useState } from 'react';
 import { useAuth } from '../AuthContext';
-import { changePassword } from '../services/api';
+import { changePassword, updateUserProfile } from '../services/api'; // Import updateUserProfile
 import { Box, Typography, TextField, Button, CircularProgress } from '@mui/material'; // Import Material-UI components
+import { useSnackbar } from '../SnackbarContext'; // Import useSnackbar
+import { useEffect } from 'react'; // Import useEffect
 
 const ProfilePage = () => {
-    const { token } = useAuth();
+    const { token, user, refreshUserData } = useAuth(); // Also get user and refreshUserData
+    const { showSnackbar } = useSnackbar();
     const [currentPassword, setCurrentPassword] = useState('');
     const [newPassword, setNewPassword] = useState('');
     const [confirmNewPassword, setConfirmNewPassword] = useState('');
-    const [message, setMessage] = useState('');
-    const [error, setError] = useState('');
-    const [loading, setLoading] = useState(false); // New loading state
+    const [loading, setLoading] = useState(false); // New loading state for password change
+    const [nickname, setNickname] = useState(user?.nickname || ''); // New nickname state
+    const [loadingNickname, setLoadingNickname] = useState(false); // New loading state for nickname update
+
+    useEffect(() => {
+        if (user) {
+            setNickname(user.nickname || '');
+        }
+    }, [user]);
+
+    const handleNicknameSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+        setLoadingNickname(true);
+        if (!token) {
+            showSnackbar("You are not authenticated.", 'error');
+            setLoadingNickname(false);
+            return;
+        }
+        if (nickname === user?.nickname) {
+            showSnackbar("Nickname is already up to date.", 'info');
+            setLoadingNickname(false);
+            return;
+        }
+
+        try {
+            await updateUserProfile(token, { nickname });
+            showSnackbar("Nickname updated successfully!", 'success');
+            await refreshUserData(); // Refresh user data in context
+        } catch (err: any) {
+            showSnackbar(err.response?.data?.detail || "Failed to update nickname. Please try again.", 'error');
+        } finally {
+            setLoadingNickname(false);
+        }
+    };
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        setError('');
-        setMessage('');
+        // Remove error and message state usage as Snackbar handles it
         setLoading(true); // Set loading true
 
         if (newPassword !== confirmNewPassword) {
-            setError("New passwords do not match.");
+            showSnackbar("New passwords do not match.", 'error'); // Use showSnackbar
             setLoading(false);
             return;
         }
 
         if (!token) {
-            setError("You are not authenticated.");
+            showSnackbar("You are not authenticated.", 'error'); // Use showSnackbar
             setLoading(false);
             return;
         }
@@ -36,17 +69,13 @@ const ProfilePage = () => {
                 new_password: newPassword,
                 confirm_new_password: confirmNewPassword
             });
-            setMessage("Password changed successfully!");
+            showSnackbar("Password changed successfully!", 'success'); // Use showSnackbar
             // Clear fields after success
             setCurrentPassword('');
             setNewPassword('');
             setConfirmNewPassword('');
         } catch (err: any) {
-            if (err.response && err.response.data && err.response.data.detail) {
-                setError(err.response.data.detail);
-            } else {
-                setError("Failed to change password. Please try again.");
-            }
+            showSnackbar(err.response?.data?.detail || "Failed to change password. Please try again.", 'error'); // Use showSnackbar
         } finally {
             setLoading(false); // Set loading false
         }
@@ -60,6 +89,33 @@ const ProfilePage = () => {
                 </Typography>
             </Box>
 
+            {/* Nickname Update Section */}
+            <Box component="form" onSubmit={handleNicknameSubmit} sx={{ maxWidth: 500, mx: 'auto', p: 4, mt: 4, bgcolor: 'background.paper', borderRadius: '8px', boxShadow: 3 }}>
+                <Typography variant="h6" component="h3" gutterBottom>
+                    Update Nickname
+                </Typography>
+                <TextField
+                    margin="normal"
+                    fullWidth
+                    id="nickname"
+                    label="Nickname"
+                    name="nickname"
+                    value={nickname}
+                    onChange={(e) => setNickname(e.target.value)}
+                />
+                <Button
+                    type="submit"
+                    fullWidth
+                    variant="contained"
+                    color="primary"
+                    sx={{ mt: 3, mb: 2 }}
+                    disabled={loadingNickname}
+                >
+                    {loadingNickname ? <CircularProgress size={24} color="inherit" /> : 'Save Nickname'}
+                </Button>
+            </Box>
+
+            {/* Change Password Section */}
             <Box component="form" onSubmit={handleSubmit} sx={{ maxWidth: 500, mx: 'auto', p: 4, mt: 4, bgcolor: 'background.paper', borderRadius: '8px', boxShadow: 3 }}>
                 <Typography variant="h6" component="h3" gutterBottom>
                     Change Password
@@ -106,9 +162,6 @@ const ProfilePage = () => {
                 >
                     {loading ? <CircularProgress size={24} color="inherit" /> : 'Change Password'}
                 </Button>
-
-                {message && <Typography variant="body1" color="success" sx={{ mt: 2 }}>{message}</Typography>}
-                {error && <Typography variant="body1" color="error" sx={{ mt: 2 }}>{error}</Typography>}
             </Box>
         </Box>
     );

@@ -13,6 +13,7 @@ interface AuthContextType {
   login: (token: string) => void;
   logout: () => void;
   isAuthenticated: boolean;
+  refreshUserData: () => Promise<void>; // Added refreshUserData
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -65,13 +66,26 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     restoreSession();
   }, []);
 
+  const refreshUserData = async () => {
+    const currentToken = localStorage.getItem("token");
+    if (currentToken) {
+      try {
+        const userData = await getUsersMe(currentToken);
+        setUser(userData);
+      } catch (error) {
+        console.error("Failed to refresh user data, logging out.", error);
+        logout();
+      }
+    }
+  };
+
   // Show a loading indicator while session is being restored
   if (loading) {
     return <div>Loading session...</div>;
   }
 
   return (
-    <AuthContext.Provider value={{ token, user, login, logout, isAuthenticated }}>
+    <AuthContext.Provider value={{ token, user, login, logout, isAuthenticated, refreshUserData }}>
       {children}
     </AuthContext.Provider>
   );

@@ -58,6 +58,9 @@ class ChangePassword(BaseModel):
     new_password: str
     confirm_new_password: str
 
+class UserUpdate(BaseModel):
+    nickname: Optional[str] = None
+
 # Schematy dla Lig (League)
 class LeagueBase(BaseModel):
     name: str

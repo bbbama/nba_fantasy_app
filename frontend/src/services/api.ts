@@ -46,6 +46,15 @@ export const changePassword = async (token: string, data: any) => {
     return response.data;
 };
 
+export const updateUserProfile = async (token: string, userUpdate: { nickname?: string }) => {
+    const response = await api.put('/users/me', userUpdate, {
+        headers: {
+            Authorization: `Bearer ${token}`,
+        },
+    });
+    return response.data;
+};
+
 export const getPlayers = async (token: string) => {
     const response = await api.get('/players', {
         headers: {

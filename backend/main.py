@@ -95,6 +95,31 @@ def read_users_me(current_user: models.User = Depends(auth.get_current_user)):
     """Pobiera dane zalogowanego użytkownika."""
     return current_user
 
+@app.put("/users/me", response_model=schemas.User)
+def update_user_profile(
+    user_update: schemas.UserUpdate,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.get_current_user)
+):
+    """Pozwala zalogowanemu użytkownikowi na aktualizację danych profilowych (np. nicku)."""
+    if user_update.nickname is not None:
+        if user_update.nickname == current_user.nickname:
+            # No change in nickname, return current user
+            return current_user
+            
+        # Check if new nickname is unique
+        existing_user_with_nickname = db.query(models.User).filter(
+            models.User.nickname == user_update.nickname
+        ).first()
+        if existing_user_with_nickname:
+            raise HTTPException(status_code=400, detail="Nickname already registered")
+        
+        current_user.nickname = user_update.nickname
+    
+    db.commit()
+    db.refresh(current_user)
+    return current_user
+
 @app.put("/users/me/change-password", status_code=status.HTTP_204_NO_CONTENT)
 def change_current_user_password(
     passwords: schemas.ChangePassword,
