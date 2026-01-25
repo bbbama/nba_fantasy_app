@@ -121,6 +121,15 @@ export const joinLeague = async (token: string, inviteCode: string) => {
     return response.data;
 };
 
+export const deleteLeague = async (token: string, leagueId: number) => {
+    const response = await api.delete(`/leagues/${leagueId}`, {
+        headers: {
+            Authorization: `Bearer ${token}`,
+        },
+    });
+    return response.data;
+};
+
 export default api;
 
 // --- Admin API Services ---

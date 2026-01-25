@@ -163,9 +163,13 @@ def get_user_leagues(
     db: Session = Depends(get_db),
     current_user: models.User = Depends(auth.get_current_user)
 ):
-    """Pobiera listę lig, których użytkownik jest członkiem."""
-    # The 'leagues' relationship on the User model handles this
-    return db.query(models.User).options(joinedload(models.User.leagues).joinedload(models.League.users)).filter(models.User.id == current_user.id).first().leagues # Eager load users for each league
+    """Pobiera listę lig, których użytkownik jest członkiem (lub wszystkie, jeśli użytkownik jest administratorem)."""
+    if current_user.role == "admin":
+        # Admin can see all leagues
+        return db.query(models.League).options(joinedload(models.League.users)).all()
+    else:
+        # Regular user can only see their own leagues
+        return db.query(models.User).options(joinedload(models.User.leagues).joinedload(models.League.users)).filter(models.User.id == current_user.id).first().leagues # Eager load users for each league
 
 @app.get("/leagues/{league_id}", response_model=schemas.League)
 def get_league_details(
@@ -204,6 +208,25 @@ def join_league(
     db.refresh(current_user) # Refresh user to include new league relationship
     
     return league
+
+@app.delete("/leagues/{league_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_league(
+    league_id: int,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.get_current_user)
+):
+    """Usuwa ligę (tylko dla właściciela lub administratora)."""
+    league = db.query(models.League).filter(models.League.id == league_id).first()
+    if not league:
+        raise HTTPException(status_code=404, detail="League not found")
+    
+    # Authorization check: only owner or admin can delete
+    if league.owner_id != current_user.id and current_user.role != "admin":
+        raise HTTPException(status_code=403, detail="Not authorized to delete this league")
+    
+    db.delete(league)
+    db.commit()
+    return
 
 
 # Endpointy do zarządzania zawodnikami

@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { useAuth } from "../AuthContext";
-import { createLeague, getLeagues, joinLeague } from "../services/api";
+import { createLeague, getLeagues, joinLeague, deleteLeague } from "../services/api"; // Import deleteLeague
 import { League } from "../types";
 import { Box, Typography, Button, TextField, CircularProgress, Paper, List, ListItem, ListItemText, IconButton, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
 import { useSnackbar } from '../SnackbarContext';
 import AddIcon from '@mui/icons-material/Add';
 import VpnKeyIcon from '@mui/icons-material/VpnKey';
+import DeleteIcon from '@mui/icons-material/Delete'; // Import DeleteIcon
 import { Link, useNavigate } from "react-router-dom"; // Import Link for navigation and useNavigate
 
 export const LeaguesPage = () => {
@@ -26,6 +27,19 @@ export const LeaguesPage = () => {
   const [openJoinDialog, setOpenJoinDialog] = useState(false);
   const [joinInviteCode, setJoinInviteCode] = useState('');
   const [joiningLeague, setJoiningLeague] = useState(false);
+  
+  const handleDeleteLeague = async (leagueId: number, leagueName: string) => {
+    if (!token) return;
+    if (window.confirm(`Are you sure you want to delete the league "${leagueName}"? This action cannot be undone.`)) {
+      try {
+        await deleteLeague(token, leagueId);
+        showSnackbar(`League "${leagueName}" deleted successfully!`, 'success');
+        fetchLeagues(); // Refresh list
+      } catch (err: any) {
+        showSnackbar(err.response?.data?.detail || "Failed to delete league.", 'error');
+      }
+    }
+  };
 
 
   const fetchLeagues = async () => {
@@ -137,10 +151,10 @@ export const LeaguesPage = () => {
                 divider
                 component={Link} // Use Link component
                 to={`/leagues/${league.id}`} // Pass navigation target
-                sx={{ '&:hover': { bgcolor: 'rgba(255, 255, 255, 0.08)' } }}
+                sx={{ '&:hover': { bgcolor: 'rgba(255, 255, 255, 0.08)', display: 'flex', alignItems: 'center' } }}
                 // Remove onClick since Link handles navigation
               >
-                <ListItemText 
+                <ListItemText
                   primary={<Typography variant="h6">{league.name}</Typography>}
                   secondary={
                     <Typography variant="body2" color="text.secondary">
@@ -149,6 +163,11 @@ export const LeaguesPage = () => {
                     </Typography>
                   }
                 />
+                {(league.owner_id === user?.id || user?.role === 'admin') && (
+                  <IconButton edge="end" aria-label="delete" onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleDeleteLeague(league.id, league.name); }}>
+                    <DeleteIcon sx={{ color: 'error.main' }} />
+                  </IconButton>
+                )}
               </ListItem>
             ))}
           </List>
