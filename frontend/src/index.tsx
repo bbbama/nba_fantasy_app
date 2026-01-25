@@ -7,6 +7,7 @@ import { AuthProvider } from './AuthContext'; // Import AuthProvider
 import { ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import theme from './theme'; // Import our custom theme
+import { SnackbarProvider } from './SnackbarContext'; // Import SnackbarProvider
 
 const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement
@@ -15,10 +16,12 @@ root.render(
   <React.StrictMode>
     <BrowserRouter>
       <AuthProvider>
-        <ThemeProvider theme={theme}>
-          <CssBaseline />
-          <App />
-        </ThemeProvider>
+        <SnackbarProvider> {/* Wrap with SnackbarProvider */}
+          <ThemeProvider theme={theme}>
+            <CssBaseline />
+            <App />
+          </ThemeProvider>
+        </SnackbarProvider>
       </AuthProvider>
     </BrowserRouter>
   </React.StrictMode>

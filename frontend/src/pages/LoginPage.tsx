@@ -3,43 +3,34 @@ import { useAuth } from "../AuthContext";
 import { useNavigate } from "react-router-dom";
 import { loginUser } from "../services/api"; // Import loginUser
 import { Box, Typography, TextField, Button, CircularProgress } from '@mui/material'; // Import Material-UI components
+import { useSnackbar } from '../SnackbarContext'; // Import useSnackbar
 
 export const LoginPage = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false); // New loading state
   const { login } = useAuth();
   const navigate = useNavigate();
+  const { showSnackbar } = useSnackbar(); // Use useSnackbar hook
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setError(null);
     setLoading(true); // Set loading true
 
     try {
       const data = await loginUser(email, password);
       await login(data.access_token); // Await the login process
+      showSnackbar('Login successful!', 'success'); // Show success message
       navigate("/");
-    } catch (err) {
+    } catch (err: any) { // Type err as any for easier access to response properties
       let errorMessage = "An unknown error occurred.";
-      if (err instanceof Error) {
-        errorMessage = err.message;
-      } else if (
-        typeof err === "object" &&
-        err !== null &&
-        "response" in err &&
-        typeof err.response === "object" &&
-        err.response !== null &&
-        "data" in err.response &&
-        typeof err.response.data === "object" &&
-        err.response.data !== null &&
-        "detail" in err.response.data
-      ) {
-        errorMessage = (err.response.data as { detail: string }).detail;
+      if (err.response && err.response.data && err.response.data.detail) {
+        errorMessage = err.response.data.detail; // Prioritize backend detail message
+      } else if (err instanceof Error) {
+        errorMessage = err.message; // Fallback to generic error message
       }
       console.error("Login error:", errorMessage);
-      setError(errorMessage);
+      showSnackbar(errorMessage, 'error'); // Show error message
     } finally {
       setLoading(false); // Set loading false
     }
@@ -93,8 +84,6 @@ export const LoginPage = () => {
         >
           {loading ? <CircularProgress size={24} color="inherit" /> : 'Zaloguj'}
         </Button>
-
-        {error && <Typography variant="body1" color="error" sx={{ mt: 2 }}>{error}</Typography>}
       </Box>
     </Box>
   );

@@ -2,34 +2,32 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { registerUser } from '../services/api'; // Import registerUser
 import { Box, Typography, TextField, Button, CircularProgress } from '@mui/material'; // Import Material-UI components
+import { useSnackbar } from '../SnackbarContext'; // Import useSnackbar
 
 export const RegisterPage = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState<string | null>(null);
-  const [message, setMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false); // New loading state
   const navigate = useNavigate();
+  const { showSnackbar } = useSnackbar(); // Use useSnackbar hook
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setError(null);
-    setMessage(null);
     setLoading(true); // Set loading true
 
     try {
       await registerUser(email, password);
-      setMessage('Rejestracja zakończona sukcesem! Możesz się teraz zalogować.');
+      showSnackbar('Registration successful! You can now log in.', 'success'); // Show success message
       navigate('/login'); // Redirect to login page after successful registration
-    } catch (err) {
+    } catch (err: any) { // Type err as any
       let errorMessage = 'An unknown error occurred.';
-      if (err instanceof Error) {
-        errorMessage = err.message;
-      } else if (typeof err === 'object' && err !== null && 'response' in err && typeof err.response === 'object' && err.response !== null && 'data' in err.response && typeof err.response.data === 'object' && err.response.data !== null && 'detail' in err.response.data) {
-        errorMessage = (err.response.data as { detail: string }).detail;
+      if (err.response && err.response.data && err.response.data.detail) {
+        errorMessage = err.response.data.detail; // Prioritize backend detail message
+      } else if (err instanceof Error) {
+        errorMessage = err.message; // Fallback to generic error message
       }
       console.error('Registration error:', errorMessage);
-      setError(errorMessage);
+      showSnackbar(errorMessage, 'error'); // Show error message
     } finally {
       setLoading(false); // Set loading false
     }
@@ -83,9 +81,6 @@ export const RegisterPage = () => {
         >
           {loading ? <CircularProgress size={24} color="inherit" /> : 'Zarejestruj'}
         </Button>
-
-        {error && <Typography variant="body1" color="error" sx={{ mt: 2 }}>{error}</Typography>}
-        {message && <Typography variant="body1" color="success" sx={{ mt: 2 }}>{message}</Typography>}
 
         <Typography variant="body2" sx={{ mt: 3, textAlign: 'center' }}>
           Masz już konto? <Link to="/login" style={{ color: 'inherit' }}>Zaloguj się</Link>
