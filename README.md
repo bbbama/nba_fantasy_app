@@ -1,57 +1,105 @@
 # NBA Fantasy App
 
-This is a fantasy basketball application built with a React frontend and a FastAPI backend.
+This is a full-stack NBA Fantasy League application, designed to allow users to build and manage their fantasy basketball teams, compete in leagues, and track player performance.
 
-## How to Deploy to Render
+## Features
 
-1.  **Push your code to a GitHub repository.**
-    *   Create a new repository on GitHub.
-    *   Push your project to the new repository.
+### User Management
+*   **User Registration & Login:** Secure user authentication.
+*   **Profile Management:** Users can update their nickname and change their password.
+*   **Admin Panel:** Administrative users can manage all registered users (delete, reset password) and trigger player data synchronization.
 
-2.  **Create a new "Blueprint" service on Render.**
-    *   Go to the [Render Dashboard](https://dashboard.render.com/).
-    *   Click on **New** and then **Blueprint**.
-    *   Connect your GitHub account and select the repository you just created.
-    *   Render will automatically detect the `render.yaml` file and propose a deployment plan.
+### Team & Player Management
+*   **Player Browsing:** View a list of all available NBA players with their positions, teams, and average fantasy points.
+*   **Search & Filter:** Easily find players by name.
+*   **My Team:** Users can add and remove players from their fantasy team, with validation for position limits (e.g., max 4 Guards, 4 Forwards, 2 Centers, max 10 total players).
+*   **Fantasy Points:** Player statistics include last game fantasy points and average fantasy points.
 
-3.  **Review and confirm the deployment plan.**
-    *   Render will show you the services to be created (backend, frontend, and database).
-    *   Click **Apply** to start the deployment.
+### Leagues (New Feature!)
+*   **Create Leagues:** Users can create their own private leagues.
+*   **Join Leagues:** Users can join existing leagues using a unique invite code.
+*   **View Leagues:** See a list of all leagues you are a member of. Admins can view all leagues in the system.
+*   **League Details:** View members of a specific league, including their nicknames/emails and total fantasy points.
+*   **Delete Leagues:** League owners or admins can delete leagues.
 
-4.  **Wait for the deployment to complete.**
-    *   You can monitor the progress in the Render dashboard.
+### Design & User Experience
+*   **Elegant NBA-Styled Dark Theme:** A consistent and visually appealing dark theme across the application using Material-UI and Tailwind CSS.
+*   **Global Notifications:** Non-intrusive success/error messages via Material-UI Snackbar.
+*   **Responsive Design:** Optimized for various screen sizes (mobile, tablet, desktop).
 
-5.  **Update the environment variables.**
-    *   After the first deployment is complete, you need to set the URLs for your services.
-    *   **Backend Service (`nba-fantasy-backend`):**
-        *   Go to the **Environment** tab.
-        *   Add a new environment variable:
-            *   **Key:** `FRONTEND_URL`
-            *   **Value:** The URL of your deployed frontend (e.g., `https://nba-fantasy-frontend.onrender.com`).
-    *   **Frontend Service (`nba-fantasy-frontend`):**
-        *   Go to the **Environment** tab.
-        *   Add a new environment variable:
-            *   **Key:** `REACT_APP_API_URL`
-            *   **Value:** The URL of your deployed backend (e.g., `https://nba-fantasy-backend.onrender.com`).
+## Local Development Setup
 
-6.  **Trigger a new deployment.**
-    *   After updating the environment variables, trigger a new deployment for the changes to take effect. You can do this by going to the service's dashboard and clicking **Manual Deploy** > **Deploy latest commit**.
+Follow these steps to set up and run the NBA Fantasy App locally.
 
-Your application should now be live on Render!
+### Prerequisites
 
-## How to Populate the Database with Players (Free Plan)
+*   **Python 3.8+:** For the FastAPI backend.
+*   **Node.js (LTS recommended) & npm (or Yarn):** For the React frontend.
 
-After deploying your application, the database will be empty. You need to run a script to fill it with players. The easiest way to do this on the free plan is by using SSH.
+### 1. Backend Setup
 
-1.  **Go to your Render Dashboard.**
-2.  Navigate to your backend service (`nba-fantasy-backend`).
-3.  Find the **SSH** connection info on the dashboard page for your service. Click the **"Connect"** button or copy the provided SSH command.
-4.  Paste the command into your local terminal and press Enter. If prompted, type `yes` to continue.
-5.  You are now connected to your running application's container. Run the player sync script with this command:
+The backend is built with FastAPI and uses SQLAlchemy for database interaction (SQLite by default).
+
+1.  **Navigate to the backend directory:**
     ```bash
-    python scripts/fetch_nba_players.py sync
+    cd backend
     ```
-6.  The script will print its progress in your terminal. Wait for it to complete.
-7.  Once finished, you can disconnect by typing `exit`.
 
-Your database is now populated with NBA players, and they should appear in your application.
+2.  **Create and activate a Python virtual environment:**
+    ```bash
+    python3 -m venv venv
+    source venv/bin/activate  # On macOS/Linux
+    # venv\Scripts\activate   # On Windows (Command Prompt)
+    # venv\Scripts\Activate.ps1 # On Windows (PowerShell)
+    ```
+
+3.  **Install backend dependencies:**
+    ```bash
+    pip install -r requirements.txt
+    ```
+
+4.  **Initialize the database:**
+    *   **Important:** If you've made significant schema changes (like adding new tables or columns), you should delete the old database file to ensure a clean setup.
+    *   Delete existing database file (if any, this will erase all data):
+        ```bash
+        rm data/nba_fantasy.db
+        ```
+    *   Create database tables:
+        ```bash
+        python3 models.py
+        ```
+    *   *Note: For production environments, consider using a proper migration tool like Alembic.*
+
+5.  **Run the backend server:**
+    ```bash
+    uvicorn main:app --reload
+    ```
+    The backend API will be available at `http://localhost:8000`.
+
+### 2. Frontend Setup
+
+The frontend is a React application built with TypeScript, Material-UI, and Tailwind CSS.
+
+1.  **Open a new terminal window** and navigate to the frontend directory:
+    ```bash
+    cd frontend
+    ```
+
+2.  **Install frontend dependencies:**
+    ```bash
+    npm install
+    # or yarn install
+    ```
+
+3.  **Run the frontend development server:**
+    ```bash
+    npm start
+    # or yarn start
+    ```
+    The frontend application will open in your browser at `http://localhost:3000`.
+
+### 3. Using the Application
+
+*   **Access:** Open your browser to `http://localhost:3000`.
+*   **Register First User (Admin):** The very first user to register will automatically be assigned the `admin` role. Use this account to access the Admin Panel.
+*   **Explore Features:** Log in, build your team, create/join leagues, and check the leaderboard.
