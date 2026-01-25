@@ -25,11 +25,19 @@ user_player_association = Table(
     Column('player_id', Integer, ForeignKey('players.id'))
 )
 
+# Tabela asocjacyjna dla relacji wiele-do-wielu między User a League
+user_league_association = Table(
+    'user_league_association', Base.metadata,
+    Column('user_id', Integer, ForeignKey('users.id')),
+    Column('league_id', Integer, ForeignKey('leagues.id'))
+)
+
 class User(Base):
     __tablename__ = "users"
 
     id = Column(Integer, primary_key=True, index=True)
     email = Column(String, unique=True, index=True, nullable=False)
+    nickname = Column(String, unique=True, index=True, nullable=True)
     hashed_password = Column(String, nullable=False)
     role = Column(String, default="user", nullable=False)  # Role: 'user' or 'admin'
     total_fantasy_points = Column(Float, default=0.0, nullable=False)
@@ -39,6 +47,28 @@ class User(Base):
         "Player",
         secondary=user_player_association,
         back_populates="users"
+    )
+
+    # Relacja do lig, w których użytkownik jest członkiem
+    leagues = relationship(
+        "League",
+        secondary=user_league_association,
+        back_populates="users"
+    )
+
+class League(Base):
+    __tablename__ = "leagues"
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, index=True, nullable=False)
+    owner_id = Column(Integer, ForeignKey('users.id'), nullable=False)
+    invite_code = Column(String, unique=True, nullable=False)
+
+    owner = relationship("User", backref="owned_leagues", foreign_keys=[owner_id])
+    users = relationship(
+        "User",
+        secondary=user_league_association,
+        back_populates="leagues"
     )
 
 class Player(Base):

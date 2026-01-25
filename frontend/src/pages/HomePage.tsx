@@ -17,7 +17,9 @@ export const HomePage = () => {
       {isAuthenticated && user ? (
         <>
           <Box sx={{ mt: 4, p: 3, bgcolor: 'background.paper', borderRadius: '8px', boxShadow: 3 }}>
-            <Typography variant="h6" gutterBottom>Witaj, {user.email}!</Typography>
+          <Typography variant="h5" component="h2" className="mb-2 sm:mb-0">
+            Welcome, {user.nickname || 'User'}!
+          </Typography>
             <Typography variant="body1">Twoje całkowite punkty fantasy: {user.total_fantasy_points.toFixed(2)}</Typography>
             <Button
               variant="contained"

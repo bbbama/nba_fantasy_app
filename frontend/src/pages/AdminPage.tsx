@@ -126,7 +126,7 @@ const AdminPage = () => {
                   {users.map((user) => (
                     <TableRow key={user.id}>
                       <TableCell sx={{ color: 'text.primary' }}>{user.id}</TableCell>
-                      <TableCell sx={{ color: 'text.primary' }}>{user.email}</TableCell>
+                      <TableCell sx={{ color: 'text.primary' }}>{user.nickname || user.email}</TableCell>
                       <TableCell sx={{ color: 'text.primary' }}>{user.role}</TableCell>
                       <TableCell sx={{ color: 'text.primary' }}>{user.total_fantasy_points.toFixed(2)}</TableCell>
                       <TableCell>

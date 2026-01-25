@@ -18,8 +18,8 @@ export const getLeaderboard = async (token: string) => {
     return response.data;
 };
 
-export const registerUser = async (email: string, password: string) => {
-    const response = await api.post('/register', { email, password });
+export const registerUser = async (email: string, password: string, nickname?: string) => {
+    const response = await api.post('/register', { email, password, nickname });
     return response.data;
 };
 
@@ -77,6 +77,43 @@ export const addPlayerToTeam = async (token: string, playerId: number) => {
 
 export const removePlayerFromTeam = async (token: string, playerId: number) => {
     const response = await api.delete(`/me/team/players/${playerId}`, {
+        headers: {
+            Authorization: `Bearer ${token}`,
+        },
+    });
+    return response.data;
+};
+
+// --- League API Services ---
+export const createLeague = async (token: string, name: string) => {
+    const response = await api.post('/leagues', { name }, {
+        headers: {
+            Authorization: `Bearer ${token}`,
+        },
+    });
+    return response.data;
+};
+
+export const getLeagues = async (token: string) => {
+    const response = await api.get('/leagues', {
+        headers: {
+            Authorization: `Bearer ${token}`,
+        },
+    });
+    return response.data;
+};
+
+export const getLeagueDetails = async (token: string, leagueId: number) => {
+    const response = await api.get(`/leagues/${leagueId}`, {
+        headers: {
+            Authorization: `Bearer ${token}`,
+        },
+    });
+    return response.data;
+};
+
+export const joinLeague = async (token: string, inviteCode: string) => {
+    const response = await api.post(`/leagues/join/${inviteCode}`, {}, { // Empty body for POST request
         headers: {
             Authorization: `Bearer ${token}`,
         },

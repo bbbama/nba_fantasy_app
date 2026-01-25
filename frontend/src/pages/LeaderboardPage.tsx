@@ -77,7 +77,7 @@ const LeaderboardPage = () => {
                           <TableCell component="th" scope="row" sx={{ color: 'text.secondary' }}>
                             {index + 1}
                           </TableCell>
-                          <TableCell sx={{ color: 'text.primary' }}>{user.email}</TableCell>
+                          <TableCell sx={{ color: 'text.primary' }}>{user.nickname || user.email}</TableCell>
                           <TableCell align="right" sx={{ color: 'text.primary' }}>{user.total_fantasy_points.toFixed(2)}</TableCell>
                         </TableRow>
                       ))}

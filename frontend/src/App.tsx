@@ -9,6 +9,8 @@ import { MyTeamPage } from "./pages/MyTeamPage";
 import LeaderboardPage from "./pages/LeaderboardPage";
 import AdminPage from "./pages/AdminPage";
 import ProfilePage from "./pages/ProfilePage";
+import { LeaguesPage } from './pages/LeaguesPage'; // Import LeaguesPage
+import { LeagueDetailsPage } from './pages/LeagueDetailsPage'; // Import LeagueDetailsPage
 import { PrivateRoute } from "./components/PrivateRoute";
 import { AdminRoute } from "./components/AdminRoute";
 import Layout from './components/Layout'; // Importujemy nasz nowy komponent Layout
@@ -38,6 +40,7 @@ function App() {
             <>
               <Button color="inherit" component={Link} to="/players">Players</Button>
               <Button color="inherit" component={Link} to="/my-team">My Team</Button>
+              <Button color="inherit" component={Link} to="/leagues">Leagues</Button> {/* Added Leagues button */}
               <Button color="inherit" component={Link} to="/leaderboard">Leaderboard</Button>
               <Button color="inherit" component={Link} to="/profile">My Profile</Button>
               {user?.role === 'admin' && (
@@ -57,6 +60,23 @@ function App() {
             element={
               <PrivateRoute>
                 <HomePage />
+              </PrivateRoute>
+            }
+          />
+          {/* Leagues Routes */}
+          <Route
+            path="/leagues"
+            element={
+              <PrivateRoute>
+                <LeaguesPage />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/leagues/:leagueId"
+            element={
+              <PrivateRoute>
+                <LeagueDetailsPage />
               </PrivateRoute>
             }
           />

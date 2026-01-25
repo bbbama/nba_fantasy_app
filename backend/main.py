@@ -3,6 +3,9 @@ from fastapi import FastAPI, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session, joinedload
 from datetime import timedelta
+from typing import List # Added for List type hint
+import secrets # Added for invite code generation
+import string # Added for invite code generation
 from apscheduler.schedulers.background import BackgroundScheduler
 from scripts.fetch_nba_players import update_stats_for_active_players
 import atexit
@@ -43,6 +46,11 @@ def register_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
     if db_user:
         raise HTTPException(status_code=400, detail="Email already registered")
 
+    if user.nickname: # Check only if nickname is provided
+        db_nickname_user = db.query(models.User).filter(models.User.nickname == user.nickname).first()
+        if db_nickname_user:
+            raise HTTPException(status_code=400, detail="Nickname already registered")
+
     # Check if this is the first user
     is_first_user = db.query(models.User).count() == 0
     user_role = "admin" if is_first_user else "user"
@@ -50,6 +58,7 @@ def register_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
     hashed_password = auth.get_password_hash(user.password)
     db_user = models.User(
         email=user.email,
+        nickname=user.nickname, # Save the nickname
         hashed_password=hashed_password,
         role=user_role
     )
@@ -110,6 +119,92 @@ def change_current_user_password(
     db.commit()
 
     return
+
+# --- League Endpoints ---
+def generate_invite_code(length=8):
+    characters = string.ascii_letters + string.digits
+    return ''.join(secrets.choice(characters) for i in range(length))
+
+@app.post("/leagues", response_model=schemas.League)
+def create_league(
+    league: schemas.LeagueCreate,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.get_current_user)
+):
+    """Tworzy nową ligę."""
+    # Ensure league name is unique (optional, but good practice)
+    existing_league = db.query(models.League).filter(models.League.name == league.name).first()
+    if existing_league:
+        raise HTTPException(status_code=400, detail="League with this name already exists")
+
+    invite_code = generate_invite_code()
+    # Ensure invite code is unique
+    while db.query(models.League).filter(models.League.invite_code == invite_code).first():
+        invite_code = generate_invite_code()
+
+    db_league = models.League(
+        name=league.name,
+        owner_id=current_user.id,
+        invite_code=invite_code
+    )
+    db.add(db_league)
+    db.commit()
+    db.refresh(db_league)
+
+    # Add current user (owner) as a member of the league
+    current_user.leagues.append(db_league)
+    db.commit()
+    db.refresh(current_user) # Refresh user to include new league relationship
+    
+    return db_league
+
+@app.get("/leagues", response_model=List[schemas.League])
+def get_user_leagues(
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.get_current_user)
+):
+    """Pobiera listę lig, których użytkownik jest członkiem."""
+    # The 'leagues' relationship on the User model handles this
+    return db.query(models.User).options(joinedload(models.User.leagues).joinedload(models.League.users)).filter(models.User.id == current_user.id).first().leagues # Eager load users for each league
+
+@app.get("/leagues/{league_id}", response_model=schemas.League)
+def get_league_details(
+    league_id: int,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.get_current_user)
+):
+    """Pobiera szczegóły konkretnej ligi."""
+    league = db.query(models.League).options(joinedload(models.League.users)).filter(models.League.id == league_id).first()
+    if not league:
+        raise HTTPException(status_code=404, detail="League not found")
+
+    # Check if current user is a member of the league
+    if current_user not in league.users:
+        raise HTTPException(status_code=403, detail="Not a member of this league")
+    
+    return league
+
+@app.post("/leagues/join/{invite_code}", response_model=schemas.League)
+def join_league(
+    invite_code: str,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.get_current_user)
+):
+    """Użytkownik dołącza do ligi za pomocą kodu zaproszenia."""
+    league = db.query(models.League).filter(models.League.invite_code == invite_code).first()
+    if not league:
+        raise HTTPException(status_code=404, detail="Invalid invite code or league not found")
+    
+    # Check if user is already a member
+    if current_user in league.users:
+        raise HTTPException(status_code=400, detail="Already a member of this league")
+    
+    current_user.leagues.append(league)
+    db.commit()
+    db.refresh(current_user) # Refresh user to include new league relationship
+    
+    return league
+
 
 # Endpointy do zarządzania zawodnikami
 

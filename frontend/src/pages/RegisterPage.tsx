@@ -7,6 +7,7 @@ import { useSnackbar } from '../SnackbarContext'; // Import useSnackbar
 export const RegisterPage = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [nickname, setNickname] = useState(''); // New nickname state
   const [loading, setLoading] = useState(false); // New loading state
   const navigate = useNavigate();
   const { showSnackbar } = useSnackbar(); // Use useSnackbar hook
@@ -16,7 +17,7 @@ export const RegisterPage = () => {
     setLoading(true); // Set loading true
 
     try {
-      await registerUser(email, password);
+      await registerUser(email, password, nickname);
       showSnackbar('Registration successful! You can now log in.', 'success'); // Show success message
       navigate('/login'); // Redirect to login page after successful registration
     } catch (err: any) { // Type err as any
@@ -57,6 +58,16 @@ export const RegisterPage = () => {
           autoFocus
           value={email}
           onChange={(e) => setEmail(e.target.value)}
+        />
+        <TextField
+          margin="normal"
+          fullWidth
+          id="nickname"
+          label="Nickname (Optional)"
+          name="nickname"
+          autoComplete="nickname"
+          value={nickname}
+          onChange={(e) => setNickname(e.target.value)}
         />
         <TextField
           margin="normal"

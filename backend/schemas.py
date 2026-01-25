@@ -1,3 +1,4 @@
+from __future__ import annotations # Required for Pydantic forward references
 from pydantic import BaseModel
 from typing import List, Optional
 
@@ -21,15 +22,26 @@ class Player(PlayerBase):
 # Schematy dla Użytkownika (User)
 class UserBase(BaseModel):
     email: str
+    nickname: Optional[str] = None
 
 class UserCreate(UserBase):
     password: str
+
+# Lżejsza wersja Usera dla zagnieżdżonych struktur (np. w League)
+class UserInLeague(UserBase):
+    id: int
+    role: str
+    total_fantasy_points: float # Added total_fantasy_points
+
+    class Config:
+        from_attributes = True
 
 class User(UserBase):
     id: int
     role: str
     total_fantasy_points: float
     players: List[Player] = []
+    leagues: List['League'] = [] # Forward reference - will be updated after League definition
 
     class Config:
         from_attributes = True
@@ -45,6 +57,24 @@ class ChangePassword(BaseModel):
     current_password: str
     new_password: str
     confirm_new_password: str
+
+# Schematy dla Lig (League)
+class LeagueBase(BaseModel):
+    name: str
+
+class LeagueCreate(LeagueBase):
+    pass
+
+class League(LeagueBase):
+    id: int
+    owner_id: int
+    invite_code: str
+    users: List[UserInLeague] = [] # Use lighter UserInLeague to break recursion
+
+    class Config:
+        from_attributes = True
+
+User.model_rebuild() # Resolve forward reference for 'leagues' in User schema
 
 # Schematy dla Tokena (JWT)
 class Token(BaseModel):
