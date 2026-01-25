@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../AuthContext';
 import { changePassword } from '../services/api';
+import { Box, Typography, TextField, Button, CircularProgress } from '@mui/material'; // Import Material-UI components
 
 const ProfilePage = () => {
     const { token } = useAuth();
@@ -9,19 +10,23 @@ const ProfilePage = () => {
     const [confirmNewPassword, setConfirmNewPassword] = useState('');
     const [message, setMessage] = useState('');
     const [error, setError] = useState('');
+    const [loading, setLoading] = useState(false); // New loading state
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         setError('');
         setMessage('');
+        setLoading(true); // Set loading true
 
         if (newPassword !== confirmNewPassword) {
             setError("New passwords do not match.");
+            setLoading(false);
             return;
         }
 
         if (!token) {
             setError("You are not authenticated.");
+            setLoading(false);
             return;
         }
 
@@ -42,49 +47,70 @@ const ProfilePage = () => {
             } else {
                 setError("Failed to change password. Please try again.");
             }
+        } finally {
+            setLoading(false); // Set loading false
         }
     };
 
     return (
-        <div>
-            <h2>My Profile</h2>
-            <form onSubmit={handleSubmit}>
-                <h3>Change Password</h3>
-                <div>
-                    <label htmlFor="currentPassword">Current Password:</label>
-                    <input
-                        type="password"
-                        id="currentPassword"
-                        value={currentPassword}
-                        onChange={(e) => setCurrentPassword(e.target.value)}
-                        required
-                    />
-                </div>
-                <div>
-                    <label htmlFor="newPassword">New Password:</label>
-                    <input
-                        type="password"
-                        id="newPassword"
-                        value={newPassword}
-                        onChange={(e) => setNewPassword(e.target.value)}
-                        required
-                    />
-                </div>
-                <div>
-                    <label htmlFor="confirmNewPassword">Confirm New Password:</label>
-                    <input
-                        type="password"
-                        id="confirmNewPassword"
-                        value={confirmNewPassword}
-                        onChange={(e) => setConfirmNewPassword(e.target.value)}
-                        required
-                    />
-                </div>
-                <button type="submit">Change Password</button>
-                {message && <p style={{ color: 'green' }}>{message}</p>}
-                {error && <p style={{ color: 'red' }}>{error}</p>}
-            </form>
-        </div>
+        <Box className="p-4"> {/* Main container with padding */}
+            <Box className="flex flex-col sm:flex-row justify-between items-center mb-6 bg-slate-800 p-4 rounded-lg shadow-xl text-white"> {/* Themed header box */}
+                <Typography variant="h5" component="h2" className="mb-2 sm:mb-0">
+                    My Profile
+                </Typography>
+            </Box>
+
+            <Box component="form" onSubmit={handleSubmit} sx={{ maxWidth: 500, mx: 'auto', p: 4, mt: 4, bgcolor: 'background.paper', borderRadius: '8px', boxShadow: 3 }}>
+                <Typography variant="h6" component="h3" gutterBottom>
+                    Change Password
+                </Typography>
+
+                <TextField
+                    margin="normal"
+                    required
+                    fullWidth
+                    id="currentPassword"
+                    label="Current Password"
+                    type="password"
+                    value={currentPassword}
+                    onChange={(e) => setCurrentPassword(e.target.value)}
+                />
+                <TextField
+                    margin="normal"
+                    required
+                    fullWidth
+                    id="newPassword"
+                    label="New Password"
+                    type="password"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                />
+                <TextField
+                    margin="normal"
+                    required
+                    fullWidth
+                    id="confirmNewPassword"
+                    label="Confirm New Password"
+                    type="password"
+                    value={confirmNewPassword}
+                    onChange={(e) => setConfirmNewPassword(e.target.value)}
+                />
+
+                <Button
+                    type="submit"
+                    fullWidth
+                    variant="contained"
+                    color="primary"
+                    sx={{ mt: 3, mb: 2 }}
+                    disabled={loading} // Disable button when loading
+                >
+                    {loading ? <CircularProgress size={24} color="inherit" /> : 'Change Password'}
+                </Button>
+
+                {message && <Typography variant="body1" color="success" sx={{ mt: 2 }}>{message}</Typography>}
+                {error && <Typography variant="body1" color="error" sx={{ mt: 2 }}>{error}</Typography>}
+            </Box>
+        </Box>
     );
 };
 

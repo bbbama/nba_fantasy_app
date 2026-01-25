@@ -7,7 +7,7 @@ interface LayoutProps {
 
 const Layout: React.FC<LayoutProps> = ({ children }) => {
   return (
-    <Box className="flex flex-col min-h-screen bg-gray-100">
+    <Box className="flex flex-col min-h-screen bg-slate-900 text-white">
       {/* AppBar będzie teraz w App.tsx */}
       <main className="flex-grow p-4">
         {children}

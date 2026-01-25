@@ -19,27 +19,31 @@ function App() {
 
   return (
     <Layout> {/* Cała aplikacja opakowana w Layout */}
-      <AppBar position="static" className="bg-blue-600">
+      <AppBar position="static">
         <Toolbar>
-          <Typography variant="h6" component="div" sx={{ flexGrow: 1 }} className="text-white">
-            NBA Fantasy
-          </Typography>
-          <Button color="inherit" component={Link} to="/" className="text-white">Home</Button>
+          <Link to="/" style={{ textDecoration: 'none', color: 'inherit', display: 'flex', alignItems: 'center' }}>
+            <img src="/logo.jpg" alt="NBA Fantasy Logo" style={{ height: '40px', marginRight: '10px' }} />
+            <Typography variant="h6" component="div"> {/* Removed flexGrow:1 from here */}
+              NBA Fantasy
+            </Typography>
+          </Link>
+          <Box sx={{ flexGrow: 1 }} /> {/* This empty Box will push subsequent items to the right */}
+          <Button color="inherit" component={Link} to="/">Home</Button>
           {!isAuthenticated ? (
             <>
-              <Button color="inherit" component={Link} to="/login" className="text-white">Login</Button>
-              <Button color="inherit" component={Link} to="/register" className="text-white">Register</Button>
+              <Button color="inherit" component={Link} to="/login">Login</Button>
+              <Button color="inherit" component={Link} to="/register">Register</Button>
             </>
           ) : (
             <>
-              <Button color="inherit" component={Link} to="/players" className="text-white">Players</Button>
-              <Button color="inherit" component={Link} to="/my-team" className="text-white">My Team</Button>
-              <Button color="inherit" component={Link} to="/leaderboard" className="text-white">Leaderboard</Button>
-              <Button color="inherit" component={Link} to="/profile" className="text-white">My Profile</Button>
+              <Button color="inherit" component={Link} to="/players">Players</Button>
+              <Button color="inherit" component={Link} to="/my-team">My Team</Button>
+              <Button color="inherit" component={Link} to="/leaderboard">Leaderboard</Button>
+              <Button color="inherit" component={Link} to="/profile">My Profile</Button>
               {user?.role === 'admin' && (
-                <Button color="inherit" component={Link} to="/admin" className="text-white">Admin Panel</Button>
+                <Button color="inherit" component={Link} to="/admin">Admin Panel</Button>
               )}
-              <Button color="inherit" onClick={logout} className="text-white">Logout</Button>
+              <Button color="inherit" onClick={logout}>Logout</Button>
             </>
           )}
         </Toolbar>

@@ -68,93 +68,94 @@ const AdminPage = () => {
             alert("User password has been reset to 'newpassword'.");
         } catch (err) {
             alert("Failed to reset password.");
-        }
+          }
+      }
+    };
+
+    if (loading) {
+      return (
+        <Box className="flex justify-center items-center h-full"> {/* Changed h-screen to h-full */}
+          <CircularProgress />
+          <Typography variant="h6" className="ml-4">Loading users...</Typography>
+        </Box>
+      );
     }
+
+    if (error) {
+      return (
+        <Box className="flex justify-center items-center h-full"> {/* Changed h-screen to h-full */}
+          <Typography variant="h6" color="error">Error: {error}</Typography>
+        </Box>
+      );
+    }
+
+    return (
+      <Box className="p-4">
+        <Box className="flex flex-col sm:flex-row justify-between items-center mb-6 bg-slate-800 p-4 rounded-lg shadow-xl text-white"> {/* Themed header box */}
+          <Typography variant="h5" component="h2" className="mb-2 sm:mb-0">
+            Admin Panel - User Management
+          </Typography>
+        </Box>
+
+        <Box className="mb-6">
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={handleSyncPlayers}
+          >
+            Sync Players Data
+          </Button>
+        </Box>
+
+        {users.length === 0 ? (
+          <Typography variant="body1" className="text-center mt-8">No users found.</Typography>
+        ) : (
+          <Paper elevation={3} sx={{ bgcolor: 'background.paper', borderRadius: '8px', boxShadow: 3 }}> {/* Apply themed background to Paper */}
+            <TableContainer>
+              <Table>
+                <TableHead>
+                  <TableRow>
+                    <TableCell sx={{ color: 'text.primary', fontWeight: 'bold' }}>ID</TableCell>
+                    <TableCell sx={{ color: 'text.primary', fontWeight: 'bold' }}>Email</TableCell>
+                    <TableCell sx={{ color: 'text.primary', fontWeight: 'bold' }}>Role</TableCell>
+                    <TableCell sx={{ color: 'text.primary', fontWeight: 'bold' }}>Total FP</TableCell>
+                    <TableCell sx={{ color: 'text.primary', fontWeight: 'bold' }}>Actions</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {users.map((user) => (
+                    <TableRow key={user.id}>
+                      <TableCell sx={{ color: 'text.primary' }}>{user.id}</TableCell>
+                      <TableCell sx={{ color: 'text.primary' }}>{user.email}</TableCell>
+                      <TableCell sx={{ color: 'text.primary' }}>{user.role}</TableCell>
+                      <TableCell sx={{ color: 'text.primary' }}>{user.total_fantasy_points.toFixed(2)}</TableCell>
+                      <TableCell>
+                                              <Button
+                                                variant="contained"
+                                                color="primary"
+                                                size="small"
+                                                onClick={() => handleResetPassword(user.id)}
+                                                className="mr-2"
+                                              >
+                                                Reset Password
+                                              </Button>
+                                              <Button
+                                                variant="contained"
+                                                color="error"
+                                                size="small"
+                                                onClick={() => handleDeleteUser(user.id)}
+                                              >
+                                                Delete
+                                              </Button>
+                                          </TableCell>
+                                        </TableRow>                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          </Paper>
+        )}
+      </Box>
+    );
   };
 
-  if (loading) {
-    return (
-      <Box className="flex justify-center items-center h-screen">
-        <CircularProgress />
-        <Typography variant="h6" className="ml-4">Loading users...</Typography>
-      </Box>
-    );
-  }
-
-  if (error) {
-    return (
-      <Box className="flex justify-center items-center h-screen text-red-500">
-        <Typography variant="h6">Error: {error}</Typography>
-      </Box>
-    );
-  }
-
-  return (
-    <Box className="p-4">
-      <Typography variant="h4" component="h2" gutterBottom>
-        Admin Panel - User Management
-      </Typography>
-
-      <Box className="mb-6">
-        <Button
-          variant="contained"
-          color="primary"
-          onClick={handleSyncPlayers}
-        >
-          Sync Players Data
-        </Button>
-      </Box>
-
-      {users.length === 0 ? (
-        <Typography variant="body1">No users found.</Typography>
-      ) : (
-        <Paper elevation={3}>
-          <TableContainer>
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <TableCell>ID</TableCell>
-                  <TableCell>Email</TableCell>
-                  <TableCell>Role</TableCell>
-                  <TableCell>Total FP</TableCell>
-                  <TableCell>Actions</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {users.map((user) => (
-                  <TableRow key={user.id}>
-                    <TableCell>{user.id}</TableCell>
-                    <TableCell>{user.email}</TableCell>
-                    <TableCell>{user.role}</TableCell>
-                    <TableCell>{user.total_fantasy_points.toFixed(2)}</TableCell>
-                    <TableCell>
-                      <Button
-                        variant="outlined"
-                        color="primary"
-                        size="small"
-                        onClick={() => handleResetPassword(user.id)}
-                        className="mr-2"
-                      >
-                        Reset Password
-                      </Button>
-                      <Button
-                        variant="outlined"
-                        color="error"
-                        size="small"
-                        onClick={() => handleDeleteUser(user.id)}
-                      >
-                        Delete
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        </Paper>
-      )}
-    </Box>
-  );
-};
-
-export default AdminPage;
+  export default AdminPage;
