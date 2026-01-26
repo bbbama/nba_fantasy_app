@@ -3,6 +3,7 @@ from fastapi import FastAPI, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session, joinedload
 from datetime import timedelta, datetime # Added datetime for daily points
+from sqlalchemy import func # Added for func.max in daily fantasy points endpoint
 from typing import List # Added for List type hint
 import secrets # Added for invite code generation
 import string # Added for invite code generation
@@ -126,26 +127,37 @@ def get_user_daily_fantasy_points(
     current_user: models.User = Depends(auth.get_current_user)
 ):
     """Pobiera łączne punkty fantasy użytkownika z dzisiaj oraz punkty poszczególnych graczy."""
-    today = datetime.now().strftime("%Y-%m-%d") # Format: YYYY-MM-DD
+    # Find the most recent game date for which data exists for any player in the user's team
+    # This assumes PlayerGameStats are populated by the scheduler for past games
+    most_recent_game_date = db.query(
+        func.max(models.PlayerGameStats.game_date)
+    ).scalar()
 
-    total_today_points = 0.0
+    if not most_recent_game_date:
+        # No game stats available yet
+        return schemas.DailyFantasyPoints(
+            total_today_points=0.0,
+            player_points_breakdown=[]
+        )
+
+    total_daily_points = 0.0
     player_points_breakdown = []
 
     for player_in_team in current_user.players:
-        player_stats_today = db.query(models.PlayerGameStats).filter(
+        player_stats = db.query(models.PlayerGameStats).filter(
             models.PlayerGameStats.player_id == player_in_team.id,
-            models.PlayerGameStats.game_date == today
+            models.PlayerGameStats.game_date == most_recent_game_date
         ).first()
 
-        if player_stats_today:
-            total_today_points += player_stats_today.fantasy_points
+        if player_stats:
+            total_daily_points += player_stats.fantasy_points
             player_points_breakdown.append({
                 "player_name": player_in_team.full_name,
-                "points": player_stats_today.fantasy_points
+                "points": player_stats.fantasy_points
             })
     
     return schemas.DailyFantasyPoints(
-        total_today_points=total_today_points,
+        total_today_points=total_daily_points,
         player_points_breakdown=player_points_breakdown
     )
 
