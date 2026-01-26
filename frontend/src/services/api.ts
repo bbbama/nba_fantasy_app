@@ -55,6 +55,15 @@ export const updateUserProfile = async (token: string, userUpdate: { nickname?: 
     return response.data;
 };
 
+export const getDailyFantasyPoints = async (token: string) => {
+    const response = await api.get('/users/me/daily_fantasy_points', {
+        headers: {
+            Authorization: `Bearer ${token}`,
+        },
+    });
+    return response.data;
+};
+
 export const getPlayers = async (token: string) => {
     const response = await api.get('/players', {
         headers: {

@@ -1,59 +1,97 @@
-# Dokumentacja Projektu: NBA Fantasy
+# Dokumentacja Projektu: NBA Fantasy App
 
-## 1. Wprowadzenie
+## Wstęp i Cel Projektu
+Projekt "NBA Fantasy App" to nowoczesna aplikacja webowa typu full-stack, stworzona z myślą o miłośnikach koszykówki i gier fantasy. Jej głównym celem jest umożliwienie użytkownikom tworzenia i zarządzania wirtualnymi drużynami NBA, śledzenia statystyk prawdziwych graczy oraz rywalizacji w ligach ze znajomymi. Aplikacja charakteryzuje się eleganckim, ciemnym motywem graficznym inspirowanym estetyką NBA, zapewniając spójne i intuicyjne doświadczenie użytkownika.
 
-Projekt "NBA Fantasy" to kompleksowy serwis typu klient-serwer, stworzony w ramach zajęć projektowych, mający na celu symulację rozgrywki fantasy związanej z ligą koszykówki NBA. Aplikacja umożliwia użytkownikom zarządzanie własnymi drużynami, śledzenie statystyk graczy oraz rywalizację z innymi uczestnikami. Projekt kładzie nacisk na nowoczesne rozwiązania technologiczne, intuicyjny interfejs użytkownika oraz zgodność z obowiązującymi standardami webowymi.
+---
 
-## 2. Technologie Wykorzystane w Projekcie
+## Architektura Techniczna
 
-Projekt "NBA Fantasy" został zaimplementowany jako aplikacja typu Single Page Application (SPA) z wykorzystaniem architektury RESTful API.
+Aplikacja zbudowana jest w architekturze klient-serwer z wykorzystaniem RESTful API do komunikacji.
 
-### Część Serwerowa (Backend)
+### Backend (Część Serwerowa)
+*   **Język Programowania:** Python 3.8+
+*   **Framework:** FastAPI
+    *   Wybrany ze względu na wysoką wydajność, łatwość tworzenia API, automatyczną walidację danych (Pydantic) i generowanie dokumentacji OpenAPI (Swagger UI).
+*   **Baza Danych:** SQLite (wersja deweloperska)
+    *   Używana z SQLAlchemy ORM, co pozwala na łatwą zmianę na inne relacyjne bazy danych (np. PostgreSQL) w środowisku produkcyjnym.
+*   **Zarządzanie Zależnościami:** `pip` i wirtualne środowiska `venv`.
+*   **Harmonogramer Zadań:** `APScheduler` do cyklicznej aktualizacji statystyk graczy.
 
-*   **Język Programowania**: Python
-*   **Framework**: FastAPI
-    *   Wybrany ze względu na wysoką wydajność, łatwość pisania kodu, wbudowaną walidację danych (Pydantic) oraz automatyczną dokumentację API (Swagger/OpenAPI).
-*   **Baza Danych**: Dowolna relacyjna baza danych (np. PostgreSQL, MySQL)
-    *   FastAPI w połączeniu z odpowiednimi bibliotekami (np. SQLAlchemy) umożliwia elastyczny dostęp do danych relacyjnych, co jest kluczowe dla przechowywania informacji o graczach, użytkownikach i drużynach.
-*   **Dostęp do Danych**: RESTful API
-    *   Backend udostępnia zestaw endpointów REST, które umożliwiają części klienckiej (frontendowi) komunikację i manipulację danymi.
+### Frontend (Część Klientowa)
+*   **Framework:** React 19 (TypeScript)
+    *   Do budowy dynamicznego, komponentowego interfejsu użytkownika (Single Page Application - SPA).
+*   **Język Programowania:** TypeScript
+    *   Zapewnia statyczne typowanie, zwiększając czytelność, utrzymywalność i niezawodność kodu.
+*   **Biblioteki UI/Stylizacja:**
+    *   **Material-UI (MUI):** Bogaty zestaw gotowych, estetycznych i responsywnych komponentów UI, zgodnych z Material Design, co zapewnia spójny wygląd.
+    *   **Tailwind CSS:** Framework CSS typu utility-first, uzupełniający Material-UI, umożliwiający szybkie i elastyczne stylowanie oraz precyzyjną kontrolę nad wyglądem.
+*   **Routing:** React Router DOM
+    *   Do zarządzania nawigacją w aplikacji SPA.
+*   **Zarządzanie Stanem:** React Context API (AuthContext dla autentykacji/autoryzacji).
+*   **Komunikacja z API:** `axios` do wykonywania żądań HTTP.
 
-### Część Klienta (Frontend)
+---
 
-*   **Framework**: React (z TypeScriptem)
-    *   Wykorzystany do budowy dynamicznego i responsywnego interfejsu użytkownika. React doskonale sprawdza się w tworzeniu SPA, zapewniając efektywne zarządzanie stanem i komponentową strukturę.
-*   **Język Programowania**: JavaScript (TypeScript)
-    *   TypeScript został zastosowany w celu zwiększenia czytelności, utrzymywalności i niezawodności kodu poprzez statyczne typowanie.
-*   **Biblioteki UI/Stylizacja**:
-    *   **Material-UI (MUI)**: Zapewnia bogaty zestaw gotowych, estetycznych i responsywnych komponentów UI, zgodnych z Material Design. Przyspiesza rozwój interfejsu i gwarantuje spójny wygląd.
-    *   **Tailwind CSS**: Wykorzystany jako framework CSS typu utility-first, umożliwiający szybkie i elastyczne stylowanie komponentów oraz layoutów, komplementując Material-UI i pozwalając na precyzyjną kontrolę nad wyglądem.
-*   **Routing**: React Router DOM
-    *   Umożliwia nawigację wewnątrz aplikacji SPA bez konieczności przeładowywania strony.
-*   **Zarządzanie Stanem Uwierzytelnienia**: Własny kontekst uwierzytelnienia (AuthContext) oparty na React Context API.
+## Główne Funkcjonalności Programu
 
-## 3. Realizacja Wymagań Projektowych
+### 1. Zarządzanie Użytkownikami
+*   **Rejestracja i Logowanie:** Bezpieczny system uwierzytelniania użytkowników oparty na tokenach JWT.
+*   **Profile Użytkownika:**
+    *   Możliwość aktualizacji **nicku** użytkownika. Nick musi być unikalny w systemie.
+    *   Możliwość zmiany hasła.
+*   **Role Użytkowników:** `user` (zwykły użytkownik) i `admin` (administrator). Pierwszy zarejestrowany użytkownik automatycznie otrzymuje rolę `admin`.
+*   **Panel Administratora:** Dostępny tylko dla administratorów. Umożliwia:
+    *   Przeglądanie wszystkich zarejestrowanych użytkowników.
+    *   Usuwanie dowolnego użytkownika.
+    *   Resetowanie hasła użytkownika do wartości domyślnej.
+    *   Ręczne wyzwalanie synchronizacji danych graczy NBA.
 
-Projekt "NBA Fantasy" spełnia następujące podstawowe założenia:
+### 2. Zarządzanie Drużyną i Graczami
+*   **Przeglądanie Graczy:** Dostęp do listy wszystkich dostępnych graczy NBA, z informacjami o pozycji, drużynie oraz punktach fantasy.
+*   **Wyszukiwanie Graczy:** Wyszukiwarka umożliwiająca szybkie znalezienie graczy po nazwisku.
+*   **Moja Drużyna:**
+    *   Użytkownicy mogą dodawać i usuwać graczy do swojej wirtualnej drużyny.
+    *   **Walidacja składu:** System automatycznie sprawdza ograniczenia pozycji (np. maks. 4 Obrońców, 4 Skrzydłowych, 2 Centrujących) oraz całkowitej liczby graczy (maks. 10).
+    *   Wyświetlanie sumy punktów fantasy drużyny użytkownika.
 
-*   **Serwis WWW w Technologii Klient-Serwer**: Projekt jest wyraźnie podzielony na niezależną część kliencką (SPA w React) i serwerową (REST API w FastAPI).
-*   **Zawartość Merytoryczna i Funkcjonalna**:
-    *   **Funkcjonalność serwerowa**: Backend w FastAPI zapewnia dostęp do bazy danych, obsługuje logikę biznesową, autentykację i autoryzację, a także dostarcza dane o graczach i użytkownikach poprzez REST API.
-    *   **Funkcjonalność klienta**: Frontend w React umożliwia interakcję z API, wyświetlanie danych, zarządzanie drużyną, rejestrację, logowanie oraz dostęp do różnych sekcji aplikacji (gracze, moja drużyna, ranking, panel admina, profil).
-*   **Możliwe Rozwiązania Technologiczne (SPA)**: Projekt został zrealizowany jako aplikacja typu SPA (Single Page Application) z wykorzystaniem stylu REST do komunikacji między klientem a serwerem.
-*   **Bazy Danych**: W projekcie można wykorzystać dowolną relacyjną bazę danych (np. PostgreSQL, MySQL), co jest zgodne z wymaganiami. Backend jest przygotowany do integracji z różnymi systemami baz danych.
-*   **Część Serwerowa Serwisu**: Zaimplementowana w języku Python z wykorzystaniem frameworka FastAPI, co spełnia wymagania dotyczące użycia języków programowania (Python, PHP, JavaScript/TypeScript).
-*   **Część Klienta Serwisu**: Zrealizowana przy użyciu biblioteki React z TypeScriptem, co jest zgodne z wymogiem wykorzystania biblioteki do realizacji aplikacji SPA (np. Vue czy React).
-*   **Uwierzytelnienie i Autoryzacja**:
-    *   Aplikacja posiada pełne uwierzytelnienie użytkowników.
-    *   Wprowadzono co najmniej dwie role autoryzowane: `user` (zwykły użytkownik) oraz `admin` (administrator). Dostęp do poszczególnych zasobów i stron (np. Panel Admina) jest kontrolowany na podstawie roli użytkownika.
-    *   Funkcjonalność stanu sesji jest realizowana poprzez **tokeny JWT**, które są bezpiecznie przechowywane i przesyłane w nagłówkach HTTP.
-*   **Walidacja Projektu i Graficzna Poprawność**:
-    *   Strony WWW generowane po stronie klienta (React) są tworzone z myślą o zgodności ze standardami HTML5.
-    *   Interfejs użytkownika jest "graficznie poprawny" i estetyczny dzięki wykorzystaniu Material-UI oraz Tailwind CSS, zapewniając spójny i nowoczesny wygląd.
-    *   Aplikacja jest projektowana tak, aby poprawnie wyświetlać się w popularnych przeglądarkach (Firefox, Chrome, Edge) i dąży do walidacji W3C - HTML5.
-*   **Standard Kodowania**: Cały projekt, zarówno frontend, jak i backend, używa standardu kodowania **UTF-8**.
-*   **Elegancja Wykonania**: Zastosowanie TypeScript, komponentowej architektury React, nowoczesnych bibliotek UI (Material-UI, Tailwind CSS) oraz czystego kodu FastAPI przyczynia się do wysokiej elegancji i czytelności wykonania projektu.
+### 3. System Lig (Nowość!)
+*   **Tworzenie Lig:** Użytkownicy mogą tworzyć własne, prywatne ligi.
+*   **Dołączanie do Lig:** Użytkownicy mogą dołączać do lig za pomocą unikalnego kodu zaproszenia.
+*   **Przeglądanie Lig:** Strona wyświetlająca listę wszystkich lig, do których użytkownik należy. Administratorzy widzą wszystkie ligi w systemie i mogą je usuwać.
+*   **Szczegóły Ligi:** Strona prezentująca nazwę ligi, jej właściciela, kod zaproszenia oraz listę członków wraz z ich nickami (lub e-mailami) i punktami fantasy.
+*   **Usuwanie Lig:** Właściciele ligi oraz administratorzy mają możliwość usunięcia ligi.
 
-## 4. Podsumowanie
+---
 
-Projekt "NBA Fantasy" stanowi solidną implementację serwisu klient-serwer, spełniając wszystkie wymagania projektowe z nawiązką. Wykorzystane technologie gwarantują wydajność, skalowalność i nowoczesny wygląd, a architektura umożliwia dalszą rozbudowę funkcjonalności. Wdrożenie autentykacji, autoryzacji oraz dbałość o standardy webowe czynią z niego kompletne i profesjonalne rozwiązanie.
+## Mechanika Gry (Podstawowe Zasady)
+
+*   **Punkty Fantasy:** Każdy gracz NBA generuje punkty fantasy na podstawie swoich rzeczywistych statystyk meczowych (punkty, zbiórki, asysty, itp.). Aplikacja śledzi średnie punkty fantasy graczy oraz punkty z ostatniego meczu.
+*   **Budowanie Drużyny:** Użytkownicy wybierają do 10 graczy do swojej drużyny, przestrzegając limitów pozycji, aby stworzyć zbalansowany skład.
+*   **Ranking:** Globalna tablica wyników (Leaderboard) wyświetla użytkowników posortowanych według ich całkowitych punktów fantasy, motywując do rywalizacji.
+*   **Ligi Prywatne:** Umożliwiają rywalizację w mniejszych grupach znajomych, z osobną tablicą wyników w ramach ligi (do dalszej rozbudowy).
+
+---
+
+## Aspekty UI/UX
+
+*   **Nowoczesny Design:** Aplikacja posiada spójny, elegancki motyw ciemny, inspirowany kolorystyką i dynamiką ligi NBA. Wykorzystanie Material-UI i Tailwind CSS zapewnia profesjonalny wygląd.
+*   **Responsywność:** Interfejs użytkownika jest zaprojektowany tak, aby optymalnie wyświetlać się i działać na różnych urządzeniach – od smartfonów po monitory desktopowe.
+*   **Intuicyjna Nawigacja:** Jasno zorganizowane menu nawigacyjne umożliwia łatwy dostęp do wszystkich sekcji aplikacji.
+*   **Globalne Powiadomienia:** System powiadomień `Snackbar` dostarcza użytkownikowi dyskretnych komunikatów o sukcesach, błędach i innych zdarzeniach, nie przerywając jego pracy.
+
+---
+
+## Instrukcje Uruchomienia Lokalnego
+
+Szczegółowe instrukcje dotyczące przygotowania środowiska i uruchomienia aplikacji lokalnie znajdują się w pliku `README.md` w głównym katalogu projektu.
+
+---
+
+## Dalszy Rozwój (Potencjalne Ulepszenia)
+
+*   **Handel Graczami/Draft:** Wprowadzenie systemu wymiany graczy lub draftu w ramach lig.
+*   **Statystyki Historyczne:** Rozszerzenie danych o graczach o statystyki historyczne.
+*   **Szczegółowe Rankingi Ligowe:** Oddzielne rankingi i zarządzanie punktami w ramach poszczególnych lig.
+*   **Powiadomienia w Aplikacji:** System powiadomień o wydarzeniach w ligach lub zmianach statystyk.
+*   **Testy Automatyczne:** Rozbudowa pokrycia testami jednostkowymi i integracyjnymi.

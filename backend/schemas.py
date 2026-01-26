@@ -61,6 +61,14 @@ class ChangePassword(BaseModel):
 class UserUpdate(BaseModel):
     nickname: Optional[str] = None
 
+class PlayerDailyPoints(BaseModel):
+    player_name: str
+    points: float
+
+class DailyFantasyPoints(BaseModel):
+    total_today_points: float
+    player_points_breakdown: List[PlayerDailyPoints]
+
 # Schematy dla Lig (League)
 class LeagueBase(BaseModel):
     name: str

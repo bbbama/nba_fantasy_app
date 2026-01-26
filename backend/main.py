@@ -2,7 +2,7 @@ import os
 from fastapi import FastAPI, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session, joinedload
-from datetime import timedelta
+from datetime import timedelta, datetime # Added datetime for daily points
 from typing import List # Added for List type hint
 import secrets # Added for invite code generation
 import string # Added for invite code generation
@@ -119,6 +119,35 @@ def update_user_profile(
     db.commit()
     db.refresh(current_user)
     return current_user
+
+@app.get("/users/me/daily_fantasy_points", response_model=schemas.DailyFantasyPoints)
+def get_user_daily_fantasy_points(
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.get_current_user)
+):
+    """Pobiera łączne punkty fantasy użytkownika z dzisiaj oraz punkty poszczególnych graczy."""
+    today = datetime.now().strftime("%Y-%m-%d") # Format: YYYY-MM-DD
+
+    total_today_points = 0.0
+    player_points_breakdown = []
+
+    for player_in_team in current_user.players:
+        player_stats_today = db.query(models.PlayerGameStats).filter(
+            models.PlayerGameStats.player_id == player_in_team.id,
+            models.PlayerGameStats.game_date == today
+        ).first()
+
+        if player_stats_today:
+            total_today_points += player_stats_today.fantasy_points
+            player_points_breakdown.append({
+                "player_name": player_in_team.full_name,
+                "points": player_stats_today.fantasy_points
+            })
+    
+    return schemas.DailyFantasyPoints(
+        total_today_points=total_today_points,
+        player_points_breakdown=player_points_breakdown
+    )
 
 @app.put("/users/me/change-password", status_code=status.HTTP_204_NO_CONTENT)
 def change_current_user_password(
